@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --viewport-height: 100vh; /* 기본값 */
+  --user-chat-width: 48rem;
+}
+
+@supports (-webkit-touch-callout: none) {
+  :root {
+    --viewport-height: calc(100vh - env(safe-area-inset-bottom))
+      /* iOS 사파리 대응 */;
+  }
+}
+
+.user-chat {
+  max-width: var(--user-chat-width, 70%);
+  border-radius: 1.5rem;
+  background-color: rgba(221, 221, 221, 0.301);
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  padding-top: .625rem;
+  padding-bottom: .625rem;
+  display: flex;
+}
+
+.ai-chat {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  padding-top: .625rem;
+  padding-bottom: .625rem;
+  width: 100%;
+  display: flex;
+}

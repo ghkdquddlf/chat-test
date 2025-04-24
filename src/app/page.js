@@ -8,12 +8,8 @@ import LikeAfter from "@/shared/styles/images/like_after.svg";
 import DisLike from "@/shared/styles/images/dislike_before.svg";
 import DisLikeAfter from "@/shared/styles/images/dislike_after.svg";
 import Image from "next/image";
-import dynamic from 'next/dynamic';
+import Lottie from "react-lottie-player";
 import RobotLottie from "@/shared/styles/images/lottie_robot.json";
-
-const Lottie = dynamic(() => import('react-lottie-player'), {
-  ssr: false,
-});
 
 export default function Home() {
   const [likedMessages, setLikedMessages] = useState({});

@@ -13,7 +13,7 @@ export async function POST(req) {
     const { messages } = await req.json();
 
     const response = await openai.chat.completions.create({
-      model: 'ft:gpt-4o-mini-2024-07-18:personal::BA8LKczV', 
+      model: 'gpt-3.5-turbo',  // 표준 모델로 변경
       stream: true,
       messages,
     });

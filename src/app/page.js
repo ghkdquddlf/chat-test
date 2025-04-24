@@ -1,76 +1,202 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useChat } from "ai/react";
 import TextAreaField from "@/shared/components/TextAreaField";
-import Button from "@/shared/components/Button";
+import Header from "@/shared/layouts/Header";
+import Like from "@/shared/styles/images/like_before.svg";
+import LikeAfter from "@/shared/styles/images/like_after.svg";
+import DisLike from "@/shared/styles/images/dislike_before.svg";
+import DisLikeAfter from "@/shared/styles/images/dislike_after.svg";
+import Image from "next/image";
+import Lottie from "react-lottie-player";
+import RobotLottie from "@/shared/styles/images/lottie_robot.json";
+
 export default function Home() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: "/api/chat",
-    onFinish: (message) => {
-      console.log(input); // 유저가 작성한 메세지
-      console.log(message); // ai response
-      // saveResume({ message }); // X?
-    },
-  });
+  const [likedMessages, setLikedMessages] = useState({});
+  const [dislikedMessages, setDisLikedMessages] = useState({});
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      api: "/api/chat",
+      onFinish: (message) => {
+        console.log(input);
+        console.log(message);
+      },
+    });
+
+  useEffect(() => {
+    // 메시지가 추가되더라도 기존 상태를 유지하며 변경이 필요한 경우에만 업데이트
+    setLikedMessages((prev) => {
+      const updated = { ...prev };
+      let hasChanges = false;
+      messages.forEach((message) => {
+        if (!(message.id in updated)) {
+          updated[message.id] = false;
+          hasChanges = true;
+        }
+      });
+      return hasChanges ? updated : prev;
+    });
+
+    setDisLikedMessages((prev) => {
+      const updated = { ...prev };
+      let hasChanges = false;
+      messages.forEach((message) => {
+        if (!(message.id in updated)) {
+          updated[message.id] = false;
+          hasChanges = true;
+        }
+      });
+      return hasChanges ? updated : prev;
+    });
+  }, [messages]);
+
+  const handleLikeClick = (id) => {
+    setLikedMessages((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+  const handleDisLikeClick = (id) => {
+    setDisLikedMessages((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   return (
-    <div className="flex flex-col w-full h-full px-16 py-24 mx-auto max-w-[48rem] min-w-60 ">
-      <form onSubmit={handleSubmit} className="flex flex-col justify-center">
-        <label className="pb-2 border-b-2 border-b-gray-200">
-          아래에 질문해보세요
-        </label>
-        <TextAreaField value={input} onChange={handleInputChange} />
-        <Button className="flex items-center">보내기</Button>
-      </form>
-      {/* {messages.length > 0
-        ? messages.map((m) => (
-            <div key={m.id} className="my-2 whitespace-pre-wrap">
-              {m.role === 'user' ? 'User: ' : 'AI: '}
-              {m.content}
-            </div>
-          ))
-        : null} */}
+    <div className="flex flex-col h-full">
+      <Header />
+      <div className="flex flex-col h-full">
+        <div className="flex flex-1 grow basis-auto flex-col overflow-hidden">
+          <div className="relative h-full">
+            <div id="target" className="h-full flex flex-col overflow-y-auto">
+              <div className="mt-[0.375rem] flex flex-col gap-[.25rem] h-full">
+                {messages.length > 0 ? (
+                  messages.map((m) => (
+                    <div key={m.id} className="flex flex-col mb:pb-9">
+                      <article className="w-full">
+                        <div className="px-6 py-1 mx-auto my-auto text-base">
+                          <div className="mx-auto flex flex-1 flex-col max-w-[48rem] mt-0">
+                            <div className="px-4 min-w-0 w-full relative flex-col ">
+                              <div className="flex-col gap-3 ">
+                                <div className="flex max-w-full flex-col">
+                                  <div className="text-start break-keep flex justify-end">
+                                    {m.role === "user" && (
+                                      <div className="user-chat">
+                                        {m.content}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="px-6 py-1 mx-auto my-auto text-base w-full">
+                              <div className="mx-auto flex flex-1 flex-col max-w-[48rem] ">
+                                {m.role !== "user" && (
+                                  <div className="ai-chat">{m.content}</div>
+                                )}
+                              </div>
 
-      {messages.length > 0
-        ? messages.map((m) => (
-            <div key={m.id} className="gap-[.25rem] flex flex-col ">
-              {m.role === "user" ? (
-                <div className="w-full px-6 py-[18px] flex items-end justify-end">
-                  <div
-                    class="user-chat"
-                  >
-                    {m.content}
+                              {m.role !== "user" &&  (
+                                <div className="px-6 pt-[8px] mx-auto w-full gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleLikeClick(m.id)}
+                                    className="w-5 h-5 mr-2"
+                                    disabled={likedMessages[m.id]}
+                                  >
+                                    <Image
+                                      src={
+                                        likedMessages[m.id] ? LikeAfter : Like
+                                      }
+                                      alt="Likebtn"
+                                      className="w-5 h-5 z-1"
+                                    />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDisLikeClick(m.id)}
+                                    className="w-5 h-5"
+                                    disabled={dislikedMessages[m.id]}
+                                  >
+                                    <Image
+                                      src={
+                                        dislikedMessages[m.id]
+                                          ? DisLikeAfter
+                                          : DisLike
+                                      }
+                                      alt="Likebtn"
+                                      className="w-5 h-5"
+                                    />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-3xl flex flex-col w-full justify-center items-center h-full ">
+                    <div className="mb-5">무엇을 도와드릴까요?</div>
+                    <div className="isolate basis-auto justify-center w-full">
+                      <div className="mx-auto px-5 text-base w-full ">
+                        <div className="mx-auto flex flex-1 text-base max-w-[48rem] gap-6 w-full">
+                          <div className="flex justify-center empty:hidden"></div>
+                          <Lottie
+                            loop
+                            animationData={RobotLottie}
+                            className="w-32"
+                            play
+                          />
+                          <form onSubmit={handleSubmit} className=" w-full">
+                            <div className="relative z-[1] flex h-full max-w-full flex-1 flex-col">
+                              <div className="absolute bottom-full left-0 right-0 z-20"></div>
+                              <div className="group relative z-[1] flex w-full items-center">
+                                <TextAreaField
+                                  value={input}
+                                  onChange={handleInputChange}
+                                />
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                      <div className="relative mt-auto min-h-8 flex w-full items-center justify-center p-2 text-center text-xs px-[60px]">
+                        <div>
+                          실수를 할 수 있습니다. 중요한 정보는 재차 확인하세요.
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div
-                  class="ai-chat"
-                >
-                  {m.content}
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          ))
-        : null}
-      {/* 간단한 CSS 처리, 이후 role과 content 입력 */}
-      {/* <div className="gap-[.25rem] flex flex-col ">
-        <div className="px-6 py-[18px] flex items-end justify-end">
-          <div
-            class="user-chat"
-            className="w-full my-2 whitespace-pre-wrap flex flex-end"
-          >
-            나무에 보드로액을 뿌리려고 하는데 어제 비가 와서 축축하거든?? 오늘
-            뿌려도 되나?
           </div>
         </div>
-        <div
-          class="ai-chat"
-          className="w-full my-2 whitespace-pre-wrap bg-slate-100"
-        >
-          보드로액은 건조가 되어야하기 때문에 일기예보를 보고 건조가 될 수 있는
-          날씨면 뿌려주세요.
-        </div> */}
-      {/* </div> */}
+      </div>
+      {messages.length > 0 && (
+        <div className="isolate basis-auto justify-center w-full">
+          <div className="mx-auto px-5 text-base w-full">
+            <div className="mx-auto flex flex-1 text-base max-w-[48rem] gap-6 w-full">
+              <div className="flex justify-center empty:hidden"></div>
+              <Lottie loop animationData={RobotLottie} className="w-32" play />
+              <form onSubmit={handleSubmit} className=" w-full">
+                <div className="relative z-[1] flex h-full max-w-full flex-1 flex-col">
+                  <div className="absolute bottom-full left-0 right-0 z-20"></div>
+                  <div className="group relative z-[1] flex w-full items-center">
+                    <TextAreaField value={input} onChange={handleInputChange} />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div className="relative mt-auto min-h-8 flex w-full items-center justify-center p-2 text-center text-xs px-[60px]">
+            <div>실수를 할 수 있습니다. 중요한 정보는 재차 확인하세요.</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
